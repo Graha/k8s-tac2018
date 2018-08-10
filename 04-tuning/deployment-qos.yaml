@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: go-app-g #Guaranteed
+  namespace: qos-try
+spec:
+  containers:
+  - name: go-app
+    image: graha/go-web:1.0 # update version of image (1.0 / 2.0)
+    resources:
+      limits:
+        cpu: "0.5"
+        memory: "100Mi"
+      requests:
+        cpu: "0.5"
+        memory: "100Mi"
+    ports:
+    - containerPort: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: go-app-b #Burstable
+  namespace: qos-try
+spec:
+  containers:
+  - name: go-app
+    image: graha/go-web:1.0 # update version of image (1.0 / 2.0)
+    resources:
+      limits:
+        memory: "200Mi"
+      requests:
+        memory: "100Mi"
+    ports:
+    - containerPort: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: go-app-be # BestEffort
+  namespace: qos-try
+spec:
+  containers:
+  - name: go-app
+    image: graha/go-web:1.0 # update version of image (1.0 / 2.0)
+    ports:
+    - containerPort: 8080
+

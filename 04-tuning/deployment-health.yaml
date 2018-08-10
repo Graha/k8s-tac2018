@@ -1,0 +1,65 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: go-app
+spec:
+  selector:
+    matchLabels:
+      app: go-app
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: go-app
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.8 
+        ports:
+        - containerPort: 90
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/app.conf
+          subPath: app.conf
+      - name: go-app
+        image: graha/go-web:1.0 # update version of image (1.0 / 2.0)
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            port: 8080
+            path: /health
+          initialDelaySeconds: 3
+          periodSeconds: 5
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-svc
+spec:
+  type: NodePort
+  ports:
+  - port: 90
+    nodePort: 30000
+    protocol: TCP
+    name: http
+  selector:
+    app: go-app
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  app.conf: |
+    server {
+      listen       90;
+      server_name  _;
+      location / {
+          proxy_pass   http://localhost:8080;
+      }
+    }
